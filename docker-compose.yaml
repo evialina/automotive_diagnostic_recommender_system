@@ -1,0 +1,78 @@
+version: '3'
+
+services:
+  training-service:
+    build: ./docker/python
+    volumes:
+      - ./training-service:/app
+      - ./model-data:/app/model-data
+    command: python script.py
+    ports:
+      - "3013:5000"
+
+  prediction-service:
+    build: ./docker/python
+    volumes:
+      - ./prediction-service:/app
+      - ./model-data:/app/model-data
+    command: python script.py
+    ports:
+      - "3011:5000"
+
+  scheduling-service:
+    build: ./docker/python
+    volumes:
+     - ./scheduling-service:/app
+    command: python script.py
+
+  webservice-dev:
+    build: ./docker/webservice 
+    volumes:
+      - ./webservice:/home/node/app
+    ports:
+      - "80:5173"
+    command: npm run dev
+
+  server:
+    image: postgrest/postgrest
+    ports:
+      - "3000:3000"
+    environment:
+      PGRST_DB_URI: postgres://app_user:password@db:5432/app_db
+      PGRST_OPENAPI_SERVER_PROXY_URI: http://127.0.0.1:3000
+      PGRST_DB_ANON_ROLE: web_anon
+      PGRST_DB_SCHEMAS: api
+    depends_on:
+      - db
+      
+  db:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - "./vehicle-service/pgdata:/var/lib/postgresql/data"
+      - "./docker/fixture:/fixture"
+  
+  continuous_db:
+    image: postgres
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: app_db
+      POSTGRES_USER: app_user
+      POSTGRES_PASSWORD: password
+    volumes:
+      - "./continuous-learning/pgdata:/var/lib/postgresql/data"
+
+  swagger:
+    image: swaggerapi/swagger-ui
+    ports:
+      - "8080:8080"
+    expose:
+      - "8080"
+    environment:
+      API_URL: http://localhost:3000/

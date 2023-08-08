@@ -1,0 +1,10 @@
+continuous-learning/pgdata
+docker/fixture/db.sql
+docker/fixture/.DS_Store
+docker/.DS_Store
+vehicle-service/pgdata
+prediction-service/__pycache__
+webservice/node_modules
+.DS_Store
+prediction-service/model-data
+training-service/__pycache__
